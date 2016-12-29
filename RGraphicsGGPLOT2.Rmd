@@ -1,0 +1,315 @@
+---
+title: "R graphics using ggplot2"
+author: "KY Park"
+date: "2017년 1월 6일"
+output: 
+  ioslides_presentation:
+    widescreen: yes
+---
+
+# Introduction
+
+---
+
+<div style="text-align: left" markdown="l">
+<img src="graphics/ggplot2.png" alt="Drawing" style="width: 200px; text-align: left;"/>
+</div>
+
+**ggplot 2** is an enhanced data visualization package for R. 
+
+Create stunning multi-layered graphics with ease
+
+http://docs.ggplot2.org/current
+
+## Why ggplot2? Advantages
+
+- Based on **Grammar of Graphics** (Wilkinson, 2005)
+- Flexible
+- Theme system for polishing plot appearance
+
+## Grammar of Graphics
+
+- Independent specification of plotting blocks
+    - Dataset
+    - Aesthetic mapping
+    - Geometric object
+    - Statistical transformations
+    - Scales
+    - Coordinate system
+    - Position adjustments
+    - Faceting
+
+# Basics and Geoms I
+
+## Basic structure
+
+<div style="text-align: center">
+<img src="graphics/ggplot2_1.png"/>
+</div>
+
+## Preparation
+
+- install and/or update ggplot2 package
+- read data file, db/VitDdb_example.csv
+- don't forget to check working directory
+- check the names of variables
+- You can change the names.
+
+---
+
+```{r, message=FALSE}
+# install.packages("ggplot2")
+library(ggplot2)
+library(dplyr)
+
+# getwd()
+db <- read.csv("db/VitDdb_example.csv", header=T)
+
+# names(db)
+# str(db)
+db <- rename(db, 
+             TOAST = TOAST.classification, 
+             prev_mRS = mRS.admission, 
+             NIHSS = NIHSS.admission)
+```
+
+
+## Geometric objects 
+
+- Geometric objects are the actual marks we put on a plot
+- ~~A plot must have at least one geom~~
+- Addition of geoms: +
+- Examples
+    - geom_point(): scatter plots
+    - geom_boxplot()
+
+## Aesthetics
+
+- ggplot(dataset, **aes**(x=  , y=  , color=  , size=  , and so on))
+- **Aesthetic** means *something you can see*.
+    - Examples include:
+        - position (on the x and y axes)
+        - color (outside color)
+        - fill(inside color)
+        - shape (of point)
+        - linetype
+        - size
+- Each type of geom accepts only a subset of all aesthetics.
+
+## Basic structure 2
+
+<div style="text-align: center">
+<img src="graphics/ggplot2_2.png"/>
+</div>
+
+## First example
+
+```{r, fig.height=4}
+p1 <- ggplot(db, aes(x=Age, y=NIHSS))
+p1 
+```
+
+## Categorical variable
+
+```{r, fig.height=4}
+p2 <- ggplot(db, aes(x=TOAST, fill=TOAST, color=TOAST))
+p2 + geom_bar()
+```
+
+## Categorical variable - change the order of items on X-axis
+
+```{r, fig.height=4, warning=FALSE}
+p2 + geom_bar() +
+  scale_x_discrete(limits=c("LAA", "CE", "SVO", "Other determined", "Undetermined"))
+```
+
+<!-- ## Categorical variable - Pie chart -->
+
+<!-- ```{r, fig.height=4, warning=FALSE} -->
+<!-- ggplot(db, aes(x=factor(1), fill=TOAST)) +  -->
+<!--   geom_bar(width = 1) + -->
+<!--     scale_fill_discrete(limits=c("Other determined", "Undetermined", "SVO", "LAA", "CE"  )) + -->
+<!--   coord_polar(theta="y") -->
+<!-- ``` -->
+
+## Continuous variable 1 
+
+```{r, fig.height=4}
+p3 <- ggplot(db, aes(VitD))
+p3 + geom_density() 
+```
+
+## Continuous variable 2
+
+```{r, fig.height=4}
+p3 + geom_histogram(binwidth = 2)
+```
+
+## Save graph - simple
+
+```{r, fig.height=4}
+ggsave("exercise1.png", width = 5, height = 5)
+```
+
+## Save graph 2
+
+```{r, fig.height=4}
+ppi = 300
+tiff("Exercise.tiff", width = ppi*8, height = ppi*4, res = ppi)
+p2 + geom_bar()
+dev.off()
+```
+
+
+## Exercise 1
+
+- Make a presentation file
+    - read your own db file
+    - make bar plot of gender
+    - you can change the order of items on x-axis
+    - make histogram of age.
+
+# Geoms II
+
+## Continuous - continuous 1
+
+```{r, fig.height=4}
+p4 <- ggplot(db, aes(x=Age, y=VitD))
+p4 + geom_point()
+```
+
+## Continuous - continuous 2
+
+```{r, fig.height=4}
+p4 + geom_point() + geom_smooth()
+```
+
+## Categorical - continuous 1
+
+```{r, fig.height=4}
+p5 <- ggplot(db, aes(x=TOAST, y=VitD))
+p5 + geom_boxplot() 
+```
+
+## Categorical - continuous 1-1
+
+```{r, fig.height=4}
+p5 + geom_boxplot() + geom_jitter()
+```
+
+## Categorical - continuous 1-2
+
+```{r, fig.height=4}
+p5 + geom_boxplot(aes(fill=TOAST), alpha=0.1) + geom_jitter(aes(color=TOAST))
+```
+
+# Statistical transformation
+
+## Statistical transformation
+
+- Some plot types like scatterplots do not require transformation
+- Other plots such as boxplots, histograms, and prediction lines require statistical transformation
+
+# Scale
+
+## Scale
+
+- Include
+    - position, color, fill, size, shape, line type
+    
+- Arguments
+    - name, limits, breaks, labels
+    
+- Example
+    - scale_*aesthetic*_*type*
+    
+---
+
+<div style="text-align: center">
+<img src="graphics/scale.png" style="width:800px;"/> 
+</div>
+
+## Scale example
+
+```{r, fig.height=4}
+p6 <- ggplot(db, aes(TOAST))
+p6 + geom_bar(aes(fill = factor(prev_mRS)))
+```
+
+---
+```{r, fig.height=3, warning=FALSE}
+p6 <- ggplot(db, aes(TOAST))
+p6 + geom_bar(aes(fill = factor(prev_mRS))) +
+  scale_fill_discrete(name = "Previous mRS") +
+  scale_x_discrete(name="TOAST Classification",
+                   limits=c("LAA", "CE", "SVO", "Other determined", "Undetermined"),
+                   breaks=c("LAA", "CE", "SVO", "Other determined", "Undetermined"),
+                   labels=c("LAA", "CE", "SVO", "Other", "Und"))
+```
+
+---
+```{r, fig.height=4}
+p7 <- ggplot(db, aes(x=Age, y=FBS))
+p7 + geom_point()
+```
+
+---
+```{r, fig.height=4}
+p7 + geom_point(aes(size=prev_mRS)) +
+  scale_size_continuous(name="previous mRS", range=c(1, 4))
+```
+
+
+# Faceting
+
+## Faceting
+```{r, fig.height=4}
+p7 <- ggplot(db, aes(x=Age, y=FBS))
+p7 + geom_point() + facet_wrap(~Gender_F)
+```
+
+---
+```{r, fig.height=4}
+p7 + geom_point() + facet_grid(TOAST~Gender_F)
+```
+
+# Theme and label
+
+## Theme
+
+- The theme system handles non-data plot elements
+    - Axis labels
+    - Plot background
+    - Facet label background
+    - Legend appearance
+
+---
+```{r, fig.height=4}
+p7 <- ggplot(db, aes(x=Age, y=FBS))
+p7 + geom_point() + facet_wrap(~Gender_F) + theme_bw()
+```
+
+## Label
+
+- ggtitle("New title")
+- xlab("New x label")
+- ylab("New y label")
+
+## Exercise 2
+
+- using db named mtcars or your own db file
+- make the following graph
+
+```{r, fig.height=4, echo=FALSE}
+ggplot(mtcars, aes(x = hp, y = mpg)) +
+  geom_point(aes(color=factor(cyl), shape = factor(am))) +
+  theme_bw() +
+  theme(plot.background = element_rect(
+    fill = "white",
+    color = "gray40")) +
+  scale_color_discrete("Cylinder") +
+  scale_shape_discrete("Tramsmission") +
+  scale_x_continuous("Horsepower") +
+  scale_y_continuous("Mile Per Gallon") +
+  ggtitle("Summary")
+```
